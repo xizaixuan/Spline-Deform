@@ -8,6 +8,10 @@ public class SplineEditor : Editor
 
     private SplineNode m_Selection = null;
 
+    public GUIStyle NormalNodeStyle = new GUIStyle();
+    public GUIStyle VisualNodeStyle = new GUIStyle();
+    public GUIStyle SelectedNodeStyle = new GUIStyle();
+
     public void OnSceneGUI()
     {
         var oldMat = Handles.matrix;
@@ -32,9 +36,26 @@ public class SplineEditor : Editor
         Handles.BeginGUI();
         foreach (var node in Spline.Nodes)
         {
-            if (NodeButton(HandleUtility.WorldToGUIPoint(node.Position), new GUIContent(" " + Spline.Nodes.IndexOf(node).ToString()), NodeButtonStyle))
+            if (NodeButton(HandleUtility.WorldToGUIPoint(node.Position), new GUIContent(" " + Spline.Nodes.IndexOf(node).ToString()), m_Selection == node ? SelectedNodeStyle : NormalNodeStyle))
             {
                 m_Selection = node;
+            }
+        }
+
+        foreach (var curve in Spline.Curves)
+        {
+            var node = curve.Samples[curve.Samples.Count >> 1];
+            if (NodeButton(HandleUtility.WorldToGUIPoint(node.position), new GUIContent(), VisualNodeStyle))
+            {
+                var newNode = new SplineNode()
+                {
+                    Position = node.position,
+                    InVec = Vector3.zero,
+                    OutVec = Vector3.zero,
+                };
+                Spline.InsertNode(Spline.Nodes.IndexOf(curve.node1), newNode);
+
+                m_Selection = newNode;
             }
         }
         Handles.EndGUI();
@@ -47,20 +68,45 @@ public class SplineEditor : Editor
         Handles.matrix = oldMat;
     }
 
-    public GUIStyle NodeButtonStyle = new GUIStyle();
-
     private void OnEnable()
     {
         var t = new Texture2D(1, 1);
         t.SetPixel(0, 0, new Color(0.8f, 0.8f, 0.8f, 1.0f));
         t.Apply();
-        NodeButtonStyle = new GUIStyle();
-        NodeButtonStyle.normal.background = t;
+        NormalNodeStyle = new GUIStyle();
+        NormalNodeStyle.normal.background = t;
+
+        var t1 = new Texture2D(1, 1);
+        t1.SetPixel(0, 0, new Color(0.0f, 1.0f, 0.0f, 0.3f));
+        t1.Apply();
+        VisualNodeStyle = new GUIStyle();
+        VisualNodeStyle.normal.background = t1;
+
+        var t2 = new Texture2D(1, 1);
+        t2.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.0f, 1.0f));
+        t2.Apply();
+        SelectedNodeStyle = new GUIStyle();
+        SelectedNodeStyle.normal.background = t2;
     }
 
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
+        EditorGUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("Delete Node"))
+        {
+            if (m_Selection != null)
+            {
+                Spline.RemoveNode(m_Selection);
+                m_Selection = null;
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+
+        if (GUI.changed)
+        {
+            EditorUtility.SetDirty(target);
+        }
     }
 
     private bool NodeButton(Vector2 position, GUIContent content,GUIStyle style)

@@ -5,10 +5,15 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class Spline : MonoBehaviour
 {
+    [HideInInspector]
     public List<SplineNode> Nodes = new List<SplineNode>();
+    [HideInInspector]
     public List<SplineCurve> Curves = new List<SplineCurve>();
 
+    [HideInInspector]
     public float Distance;
+
+    private bool m_Dirty = false;
 
     public void Reset()
     {
@@ -51,34 +56,53 @@ public class Spline : MonoBehaviour
             var nextNode = Nodes[i + 1];
 
             var curve = new SplineCurve(curNode, nextNode);
+            curve.Changed.AddListener(CurveChangedCallBack);
             Curves.Add(curve);
-            curve.Changed.AddListener(UpdateCurve);
         }
-
-        UpdateCurve();
     }
 
     public void AddNode(SplineNode node)
     {
         Nodes.Add(node);
 
-        if (Nodes.Count > 1)
-        {
-            var prevNode = Nodes[Nodes.IndexOf(node) - 1];
-            var curve = new SplineCurve(prevNode, node);
-            Curves.Add(curve);
-            curve.Changed.AddListener(UpdateCurve);
-        }
+        SplineUtil.ComputeTangent(this);
 
-        UpdateCurve();
+        m_Dirty = true;
     }
 
-    private void UpdateCurve()
+    public void InsertNode(int insertIndex, SplineNode node)
+    {
+        Nodes.Insert(insertIndex, node);
+
+        SplineUtil.ComputeTangent(this);
+
+        m_Dirty = true;
+    }
+
+    public void RemoveNode(SplineNode node)
+    {
+        Nodes.Remove(node);
+
+        SplineUtil.ComputeTangent(this);
+
+        m_Dirty = true;
+    }
+
+    private void CurveChangedCallBack()
     {
         Distance = 0;
         foreach (var curve in Curves)
         {
             Distance += curve.Distance;
+        }
+    }
+
+    public void Update()
+    {
+        if (m_Dirty)
+        {
+            m_Dirty = false;
+            RefreshCurves();
         }
     }
 }
