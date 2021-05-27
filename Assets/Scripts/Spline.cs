@@ -56,9 +56,9 @@ public class Spline : MonoBehaviour
             var nextNode = Nodes[i + 1];
 
             var curve = new SplineCurve(curNode, nextNode);
-            curve.Changed.AddListener(CurveChangedCallBack);
             Curves.Add(curve);
         }
+        UpdateCurveDistance();
     }
 
     public void AddNode(SplineNode node)
@@ -88,12 +88,22 @@ public class Spline : MonoBehaviour
         m_Dirty = true;
     }
 
-    private void CurveChangedCallBack()
+    public void MoveNode(SplineNode node, Vector3 delta)
+    {
+        node.Position += delta;
+
+        SplineUtil.ComputeTangent(this);
+
+        m_Dirty = true;
+    }
+
+    private void UpdateCurveDistance()
     {
         Distance = 0;
         foreach (var curve in Curves)
         {
-            Distance += curve.Distance;
+            Distance += curve.DistanceLocal;
+            curve.DistanceGlobal = Distance;
         }
     }
 

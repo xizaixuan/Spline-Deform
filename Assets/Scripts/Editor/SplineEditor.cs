@@ -27,16 +27,14 @@ public class SplineEditor : Editor
             Vector3 newPosition = Handles.PositionHandle(m_Selection.Position, Spline.transform.rotation);
             if (newPosition != m_Selection.Position)
             {
-                m_Selection.InVec += newPosition - m_Selection.Position;
-                m_Selection.OutVec += newPosition - m_Selection.Position;
-                m_Selection.Position = newPosition;
+                Spline.MoveNode(m_Selection, newPosition - m_Selection.Position);
             }
         }
 
         Handles.BeginGUI();
         foreach (var node in Spline.Nodes)
         {
-            if (NodeButton(HandleUtility.WorldToGUIPoint(node.Position), new GUIContent(" " + Spline.Nodes.IndexOf(node).ToString()), m_Selection == node ? SelectedNodeStyle : NormalNodeStyle))
+            if (NodeControlPoint(HandleUtility.WorldToGUIPoint(node.Position), new GUIContent(" " + Spline.Nodes.IndexOf(node).ToString()), m_Selection == node ? SelectedNodeStyle : NormalNodeStyle))
             {
                 m_Selection = node;
             }
@@ -45,7 +43,7 @@ public class SplineEditor : Editor
         foreach (var curve in Spline.Curves)
         {
             var node = curve.Samples[curve.Samples.Count >> 1];
-            if (NodeButton(HandleUtility.WorldToGUIPoint(node.position), new GUIContent(), VisualNodeStyle))
+            if (NodeControlPoint(HandleUtility.WorldToGUIPoint(node.position), new GUIContent(), VisualNodeStyle))
             {
                 var newNode = new SplineNode()
                 {
@@ -109,7 +107,7 @@ public class SplineEditor : Editor
         }
     }
 
-    private bool NodeButton(Vector2 position, GUIContent content,GUIStyle style)
+    private bool NodeControlPoint(Vector2 position, GUIContent content,GUIStyle style)
     {
         var buttonSize = 16;
         return GUI.Button(new Rect(position - new Vector2(buttonSize / 2, buttonSize / 2), new Vector2(buttonSize, buttonSize)), content, style);

@@ -67,4 +67,39 @@ public class SplineUtil
             }
         }
     }
+
+    static public Vector3 InterpCurve(SplineNode n0, SplineNode n1, float t)
+    {
+        float omt = 1.0f - t;
+
+        float omt2 = omt * omt;
+        float omt3 = omt2 * omt;
+
+        float t2 = t * t;
+        float t3 = t2 * t;
+
+        omt = 3.0f * omt * t2;
+        omt2 = 3.0f * omt2 * t;
+
+        return (omt3 * n0.Position) + (omt2 * n0.OutVec) + (omt * n1.InVec) + (t3 * n1.Position);
+    }
+
+    static public Vector3 Interp(Spline spline, float percent)
+    {
+        var distance = spline.Distance * percent;
+
+        SplineCurve targetCurve = null;
+        
+        foreach (var curve in spline.Curves)
+        {
+            if (distance <= curve.DistanceGlobal)
+            {
+                targetCurve = curve;
+                break;
+            }
+        }
+
+        var newPercent = 1 - (targetCurve.DistanceGlobal - distance) / targetCurve.DistanceLocal;
+        return spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, newPercent));
+    }
 }
