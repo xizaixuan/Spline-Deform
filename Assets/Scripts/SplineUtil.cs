@@ -84,7 +84,7 @@ public class SplineUtil
         return (omt3 * n0.Position) + (omt2 * n0.OutVec) + (omt * n1.InVec) + (t3 * n1.Position);
     }
 
-    static public Vector3 Interp(Spline spline, float percent)
+    static public SplineSample Interp(Spline spline, float percent)
     {
         var distance = spline.Distance * percent;
 
@@ -99,7 +99,10 @@ public class SplineUtil
             }
         }
 
-        var newPercent = 1 - (targetCurve.DistanceGlobal - distance) / targetCurve.DistanceLocal;
-        return spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, newPercent));
+        var t = 1 - (targetCurve.DistanceGlobal - distance) / targetCurve.DistanceLocal;
+
+        var pos0 = spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, t));
+        var pos1 = spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, t + 0.01f));
+        return new SplineSample() { position = pos0, forward = Vector3.Normalize(pos1 - pos0) };
     }
 }

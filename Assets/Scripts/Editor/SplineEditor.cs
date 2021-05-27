@@ -45,12 +45,7 @@ public class SplineEditor : Editor
             var node = curve.Samples[curve.Samples.Count >> 1];
             if (NodeControlPoint(HandleUtility.WorldToGUIPoint(node.position), new GUIContent(), VisualNodeStyle))
             {
-                var newNode = new SplineNode()
-                {
-                    Position = node.position,
-                    InVec = Vector3.zero,
-                    OutVec = Vector3.zero,
-                };
+                var newNode = new SplineNode() {  Position = node.position };
                 Spline.InsertNode(Spline.Nodes.IndexOf(curve.node1), newNode);
 
                 m_Selection = newNode;

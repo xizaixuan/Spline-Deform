@@ -6,7 +6,7 @@ using UnityEngine;
 public class SplineCurve
 {
     private const int SampleCount = 120;
-    public readonly List<CurveSample> Samples = new List<CurveSample>(SampleCount);
+    public readonly List<SplineSample> Samples = new List<SplineSample>(SampleCount);
 
     public SplineNode node0;
     public SplineNode node1;
@@ -38,7 +38,7 @@ public class SplineCurve
 
             DistanceLocal += Vector3.Distance(prePos, curPos);
 
-            Samples.Add(new CurveSample(curPos, DistanceLocal, i * stepValue));
+            Samples.Add(new SplineSample() { position = curPos, forward = Vector3.zero });
         }
     }
 }
