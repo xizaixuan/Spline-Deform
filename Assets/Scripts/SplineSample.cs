@@ -2,6 +2,8 @@
 
 public struct SplineSample
 {
-    public Vector3 position;
-    public Vector3 forward;
+    public Vector3 Position;
+    public Vector3 Forward;
+    public Vector3 Scale;
+    public float Roll;
 }

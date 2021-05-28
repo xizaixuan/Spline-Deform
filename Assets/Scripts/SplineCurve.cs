@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public class SplineCurve
 {
-    private const int SampleCount = 120;
+    private const int SampleCount = 60;
     public readonly List<SplineSample> Samples = new List<SplineSample>(SampleCount);
 
     public SplineNode node0;
@@ -19,15 +19,11 @@ public class SplineCurve
         node0 = n0;
         node1 = n1;
 
-        node0.Changed += Sampling;
-        node1.Changed += Sampling;
-
-        Sampling(null, null);
+        Sampling();
     }
 
-    private void Sampling(object sender, EventArgs e)
+    private void Sampling()
     {
-        Samples.Clear();
         DistanceLocal = 0;
 
         var stepValue = 1.0f / SampleCount;
@@ -38,7 +34,7 @@ public class SplineCurve
 
             DistanceLocal += Vector3.Distance(prePos, curPos);
 
-            Samples.Add(new SplineSample() { position = curPos, forward = Vector3.zero });
+            Samples.Add(new SplineSample() { Position = curPos, Forward = Vector3.zero });
         }
     }
 }

@@ -62,8 +62,8 @@ public class SplineUtil
 
             for (int i = 0; i < n; i++)
             {
-                spline.Nodes[i].OutVec = p1[i];
-                spline.Nodes[i + 1].InVec = p2[i];
+                spline.Nodes[i].OutTangent = p1[i];
+                spline.Nodes[i + 1].InTangent = p2[i];
             }
         }
     }
@@ -81,7 +81,7 @@ public class SplineUtil
         omt = 3.0f * omt * t2;
         omt2 = 3.0f * omt2 * t;
 
-        return (omt3 * n0.Position) + (omt2 * n0.OutVec) + (omt * n1.InVec) + (t3 * n1.Position);
+        return (omt3 * n0.Position) + (omt2 * n0.OutTangent) + (omt * n1.InTangent) + (t3 * n1.Position);
     }
 
     static public SplineSample Interp(Spline spline, float percent)
@@ -103,6 +103,9 @@ public class SplineUtil
 
         var pos0 = spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, t));
         var pos1 = spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, t + 0.01f));
-        return new SplineSample() { position = pos0, forward = Vector3.Normalize(pos1 - pos0) };
+
+        var scale = Vector3.Lerp(targetCurve.node0.Scale, targetCurve.node1.Scale, t);
+        var roll = Mathf.Lerp(targetCurve.node0.Roll, targetCurve.node1.Roll, t);
+        return new SplineSample() { Position = pos0, Forward = Vector3.Normalize(pos1 - pos0), Scale = scale, Roll = (int)roll };
     }
 }

@@ -19,7 +19,7 @@ public class SplineEditor : Editor
 
         foreach (var curve in Spline.Curves)
         {
-            Handles.DrawAAPolyLine(4, curve.Samples.ConvertAll(sample => sample.position).ToArray());
+            Handles.DrawAAPolyLine(4, curve.Samples.ConvertAll(sample => sample.Position).ToArray());
         }
 
         if (m_Selection != null)
@@ -43,9 +43,10 @@ public class SplineEditor : Editor
         foreach (var curve in Spline.Curves)
         {
             var node = curve.Samples[curve.Samples.Count >> 1];
-            if (NodeControlPoint(HandleUtility.WorldToGUIPoint(node.position), new GUIContent(), VisualNodeStyle))
+            if (NodeControlPoint(HandleUtility.WorldToGUIPoint(node.Position), new GUIContent(), VisualNodeStyle))
             {
-                var newNode = new SplineNode() {  Position = node.position };
+                var scale = Vector3.Lerp(curve.node0.Scale, curve.node1.Scale, 0.5f);
+                var newNode = new SplineNode() {  Position = node.Position, Scale = scale };
                 Spline.InsertNode(Spline.Nodes.IndexOf(curve.node1), newNode);
 
                 m_Selection = newNode;
@@ -95,6 +96,16 @@ public class SplineEditor : Editor
             }
         }
         EditorGUILayout.EndHorizontal();
+
+        if (m_Selection != null)
+        {
+            EditorGUILayout.LabelField("Selected node");
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.Vector3Field("Position", m_Selection.Position);
+            EditorGUI.EndDisabledGroup();
+            m_Selection.Scale = EditorGUILayout.Vector3Field("Scale", m_Selection.Scale);
+            m_Selection.Roll = EditorGUILayout.Slider("Role", m_Selection.Roll, 0.0f, 359.0f);
+        }
 
         if (GUI.changed)
         {

@@ -32,12 +32,7 @@ public class Spline : MonoBehaviour
             Vector3 pos = new Vector3(cosfac * defRadius, sinfac * defRadius, 0.0f);
             Vector3 rotVec = new Vector3(sinfac * vector, -cosfac * vector, 0.0f);
 
-            AddNode(new SplineNode()
-            {
-                Position = pos,
-                InVec = pos + rotVec,
-                OutVec = pos - rotVec
-            });
+            AddNode(new SplineNode() { Position = pos });
         }
     }
 
@@ -54,9 +49,8 @@ public class Spline : MonoBehaviour
         {
             var curNode = Nodes[i];
             var nextNode = Nodes[i + 1];
-
-            var curve = new SplineCurve(curNode, nextNode);
-            Curves.Add(curve);
+            
+            Curves.Add(new SplineCurve(curNode, nextNode));
         }
         UpdateCurveDistance();
     }

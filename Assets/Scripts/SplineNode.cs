@@ -4,30 +4,19 @@ using UnityEngine;
 [System.Serializable]
 public class SplineNode
 {
-    public Vector3 Position
-    {
-        get { return m_Position; }
-        set
-        {
-            if (m_Position.Equals(value))
-                return;
+    public Vector3 Position;
+    public Vector3 Scale;
+    public float Roll;
 
-            m_Position = value;
-            Changed?.Invoke(this, EventArgs.Empty);
-        }
-    }
-    public Vector3 InVec;
-    public Vector3 OutVec;
-
-    [SerializeField]
-    private Vector3 m_Position;
-
-    public event EventHandler Changed;
-
+    public Vector3 InTangent;
+    public Vector3 OutTangent;
+    
     public SplineNode()
     {
         Position = Vector3.zero;
-        InVec = Vector3.zero;
-        OutVec = Vector3.zero;
+        Scale = Vector3.one;
+        Roll = 0;
+        InTangent = Vector3.zero;
+        OutTangent = Vector3.zero;
     }
 }
