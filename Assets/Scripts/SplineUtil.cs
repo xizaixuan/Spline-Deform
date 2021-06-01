@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class SplineUtil
 {
-    static public Vector3 InterpCurve(SplineNode n0, SplineNode n1, float t)
+    static public Vector3 InterpCurvePositioin(SplineNode n0, SplineNode n1, float t)
     {
-        float omt = 1.0f - t;
+        float omt = Mathf.Clamp01(1.0f - t);
 
         float omt2 = omt * omt;
         float omt3 = omt2 * omt;
@@ -22,18 +22,15 @@ public class SplineUtil
 
     static public Vector3 InterpCurveTangent(SplineNode n0, SplineNode n1, float t)
     {
-        float omt = 1.0f - t;
+        float omt = Mathf.Clamp01(1.0f - t);
 
         float omt2 = omt * omt;
-        float omt3 = omt2 * omt;
 
         float t2 = t * t;
-        float t3 = t2 * t;
 
-        omt = 3.0f * omt * t2;
-        omt2 = 3.0f * omt2 * t;
-
-        return (-omt2 * n0.Position + (3 * omt2 - 2 * omt) * n0.OutPoint + (-3 * t2 + 2 * t) * n1.InPoint + t2 * n1.Position).normalized;
+        return (3.0f * omt2 * (n0.OutPoint - n0.Position) +
+               6.0f * omt * t * (n1.InPoint - n0.OutPoint) +
+               3.0f * t2 * (n1.OutPoint - n1.Position)).normalized;
     }
 
     static public SplineSample Interp(Spline spline, float percent)
@@ -57,12 +54,12 @@ public class SplineUtil
 
         var t = 1 - (targetCurve.DistanceGlobal - distance) / targetCurve.DistanceLocal;
 
-        var pos0 = InterpCurve(targetCurve.node0, targetCurve.node1, t);
-        var pos1 = InterpCurve(spline.Curves[targetIndex].node0, spline.Curves[targetIndex].node1, t + 1.0f / 60.0f);
+        var pos = InterpCurvePositioin(targetCurve.node0, targetCurve.node1, t);
+        var forward = InterpCurveTangent(targetCurve.node0, targetCurve.node1, t);
 
         var scale = Vector3.Lerp(targetCurve.node0.Scale, targetCurve.node1.Scale, t);
         var roll = Mathf.Lerp(targetCurve.node0.Roll, targetCurve.node1.Roll, t);
-        return new SplineSample() { Position = pos0, Forward = InterpCurveTangent(targetCurve.node0, targetCurve.node1, t), Scale = scale, Roll = (int)roll };
+        return new SplineSample() { Position = pos, Forward = forward, Scale = scale, Roll = (int)roll };
     }
 
     static public Mesh DuplicateMesh(Mesh mesh)

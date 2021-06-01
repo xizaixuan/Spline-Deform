@@ -29,7 +29,13 @@ public class SplineEditor : Editor
 
         foreach (var curve in Spline.Curves)
         {
-            Handles.DrawAAPolyLine(4, curve.Samples.ConvertAll(sample => sample.Position).ToArray());
+            Handles.DrawBezier(curve.node0.Position, curve.node1.Position,
+                curve.node0.OutPoint, curve.node1.InPoint, Color.blue, null, 4);
+            //Handles.DrawAAPolyLine(4, curve.Samples.ConvertAll(sample => sample.Position).ToArray());
+            //             foreach (var sample in curve.Samples)
+            //             {
+            //                 Handles.DrawLine(sample.Position, sample.Position + sample.Forward);
+            //             }
         }
 
         if (m_Selection != null)

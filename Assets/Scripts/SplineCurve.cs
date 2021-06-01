@@ -29,12 +29,13 @@ public class SplineCurve
         var stepValue = 1.0f / SampleCount;
         for (int i = 0; i <= SampleCount; i++)
         {
-            var prePos = SplineUtil.InterpCurve(node0, node1, Mathf.Clamp01((i - 1) * stepValue));
-            var curPos = SplineUtil.InterpCurve(node0, node1, Mathf.Clamp01(i * stepValue));
+            var prePos = SplineUtil.InterpCurvePositioin(node0, node1, Mathf.Clamp01((i - 1) * stepValue));
+            var curPos = SplineUtil.InterpCurvePositioin(node0, node1, Mathf.Clamp01(i * stepValue));
+            var forward = SplineUtil.InterpCurveTangent(node0, node1, Mathf.Clamp01(i * stepValue));
 
             DistanceLocal += Vector3.Distance(prePos, curPos);
 
-            Samples.Add(new SplineSample() { Position = curPos, Forward = Vector3.zero });
+            Samples.Add(new SplineSample() { Position = curPos, Forward = forward });
         }
     }
 }

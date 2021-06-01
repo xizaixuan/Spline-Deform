@@ -44,6 +44,11 @@ public class Modified : MonoBehaviour
 
     public void Update()
     {
+        Percent += Time.deltaTime * 0.2f;
+        if (Percent>1.0f)
+        {
+            Percent = Percent - 1.0f;
+        }
         if (spline != null)
         {
             var samplePoint = SplineUtil.Interp(spline, Percent);
