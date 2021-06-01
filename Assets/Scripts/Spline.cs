@@ -20,20 +20,8 @@ public class Spline : MonoBehaviour
         Nodes.Clear();
         Curves.Clear();
 
-        var defRadius = 1.0f;
-        var vector = 0.5f;
-
-        for (int i = 0; i < 4; i++)
-        {
-            float angle = Mathf.PI * 2.0f * i / 4;
-            float sinfac = Mathf.Sin(angle);
-            float cosfac = Mathf.Cos(angle);
-
-            Vector3 pos = new Vector3(cosfac * defRadius, sinfac * defRadius, 0.0f);
-            Vector3 rotVec = new Vector3(sinfac * vector, -cosfac * vector, 0.0f);
-
-            AddNode(new SplineNode() { Position = pos });
-        }
+        AddNode(new SplineNode() { Position = new Vector3(-5, 0, 0), InPoint = new Vector3(-5, -5, 0), OutPoint = new Vector3(-5, 5, 0) });
+        AddNode(new SplineNode() { Position = new Vector3( 5, 0, 0), InPoint = new Vector3( 5, 5, 0), OutPoint = new Vector3(5, -5, 0) });
     }
 
     public void OnEnable()
@@ -59,16 +47,12 @@ public class Spline : MonoBehaviour
     {
         Nodes.Add(node);
 
-        SplineUtil.ComputeTangent(this);
-
         m_Dirty = true;
     }
 
     public void InsertNode(int insertIndex, SplineNode node)
     {
         Nodes.Insert(insertIndex, node);
-
-        SplineUtil.ComputeTangent(this);
 
         m_Dirty = true;
     }
@@ -77,16 +61,12 @@ public class Spline : MonoBehaviour
     {
         Nodes.Remove(node);
 
-        SplineUtil.ComputeTangent(this);
-
         m_Dirty = true;
     }
 
     public void MoveNode(SplineNode node, Vector3 delta)
     {
         node.Position += delta;
-
-        SplineUtil.ComputeTangent(this);
 
         m_Dirty = true;
     }

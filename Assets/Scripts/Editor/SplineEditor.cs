@@ -11,6 +11,16 @@ public class SplineEditor : Editor
     public GUIStyle NormalNodeStyle = new GUIStyle();
     public GUIStyle VisualNodeStyle = new GUIStyle();
     public GUIStyle SelectedNodeStyle = new GUIStyle();
+    public GUIStyle DirectionNodeStyle = new GUIStyle();
+
+    private enum NodeType
+    {
+        Node,
+        InNode,
+        OutNode,
+    }
+
+    private NodeType m_NodeType;
 
     public void OnSceneGUI()
     {
@@ -24,10 +34,34 @@ public class SplineEditor : Editor
 
         if (m_Selection != null)
         {
-            Vector3 newPosition = Handles.PositionHandle(m_Selection.Position, Spline.transform.rotation);
-            if (newPosition != m_Selection.Position)
+            switch (m_NodeType)
             {
-                Spline.MoveNode(m_Selection, newPosition - m_Selection.Position);
+                case NodeType.Node:
+                    {
+                        Vector3 newPosition = Handles.PositionHandle(m_Selection.Position, Spline.transform.rotation);
+                        if (newPosition != m_Selection.Position)
+                        {
+                            var delta = newPosition - m_Selection.Position;
+                            m_Selection.InPoint += delta;
+                            m_Selection.OutPoint += delta;
+                            Spline.MoveNode(m_Selection, delta);
+                        }
+                    }
+                    break;
+                case NodeType.InNode:
+                    {
+                        m_Selection.InPoint = Handles.PositionHandle(m_Selection.InPoint, Quaternion.identity);
+                        m_Selection.OutPoint = 2 * m_Selection.Position - m_Selection.InPoint;
+                        Spline.MoveNode(m_Selection, Vector3.zero);
+                    }
+                    break;
+                case NodeType.OutNode:
+                    {
+                        m_Selection.OutPoint = Handles.PositionHandle(m_Selection.OutPoint, Quaternion.identity);
+                        m_Selection.InPoint = 2 * m_Selection.Position - m_Selection.OutPoint;
+                        Spline.MoveNode(m_Selection, Vector3.zero);
+                    }
+                    break;
             }
         }
 
@@ -37,6 +71,23 @@ public class SplineEditor : Editor
             if (NodeControlPoint(HandleUtility.WorldToGUIPoint(node.Position), new GUIContent(" " + Spline.Nodes.IndexOf(node).ToString()), m_Selection == node ? SelectedNodeStyle : NormalNodeStyle))
             {
                 m_Selection = node;
+
+                m_NodeType = NodeType.Node;
+            }
+
+            if (m_Selection == node)
+            {
+                Handles.color = new Color(1,1,0);
+                Handles.DrawLine(HandleUtility.WorldToGUIPoint(node.InPoint), HandleUtility.WorldToGUIPoint(node.OutPoint));
+
+                if (NodeControlPoint(HandleUtility.WorldToGUIPoint(m_Selection.InPoint), new GUIContent(), DirectionNodeStyle))
+                {
+                    m_NodeType = NodeType.InNode;
+                }
+                if (NodeControlPoint(HandleUtility.WorldToGUIPoint(m_Selection.OutPoint), new GUIContent(), DirectionNodeStyle))
+                {
+                    m_NodeType = NodeType.OutNode;
+                }
             }
         }
 
@@ -46,12 +97,14 @@ public class SplineEditor : Editor
             if (NodeControlPoint(HandleUtility.WorldToGUIPoint(node.Position), new GUIContent(), VisualNodeStyle))
             {
                 var scale = Vector3.Lerp(curve.node0.Scale, curve.node1.Scale, 0.5f);
-                var newNode = new SplineNode() {  Position = node.Position, Scale = scale };
+                var direction = (curve.node1.InPoint - curve.node0.OutPoint).normalized;
+                var newNode = new SplineNode() {  Position = node.Position, InPoint = node.Position - direction, OutPoint = node.Position + direction, Scale = scale };
                 Spline.InsertNode(Spline.Nodes.IndexOf(curve.node1), newNode);
 
                 m_Selection = newNode;
             }
         }
+    
         Handles.EndGUI();
 
         if (GUI.changed)
@@ -81,6 +134,12 @@ public class SplineEditor : Editor
         t2.Apply();
         SelectedNodeStyle = new GUIStyle();
         SelectedNodeStyle.normal.background = t2;
+
+        var t3 = new Texture2D(1, 1);
+        t3.SetPixel(0, 0, new Color(1.0f, 1.0f, 0.0f, 1.0f));
+        t3.Apply();
+        DirectionNodeStyle = new GUIStyle();
+        DirectionNodeStyle.normal.background = t3;
     }
 
     public override void OnInspectorGUI()
