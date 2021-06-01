@@ -88,24 +88,54 @@ public class SplineUtil
     {
         var distance = spline.Distance * percent;
 
-        SplineCurve targetCurve = null;
-        
-        foreach (var curve in spline.Curves)
+        var curveCount = spline.Curves.Count;
+        var targetIndex = 0;
+
+        for (int i = 0; i < curveCount; i++)
         {
+            var curve = spline.Curves[i];
             if (distance <= curve.DistanceGlobal)
             {
-                targetCurve = curve;
+                targetIndex = i;
                 break;
             }
         }
 
+        SplineCurve targetCurve = spline.Curves[targetIndex];
+
         var t = 1 - (targetCurve.DistanceGlobal - distance) / targetCurve.DistanceLocal;
 
-        var pos0 = spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, t));
-        var pos1 = spline.transform.TransformPoint(InterpCurve(targetCurve.node0, targetCurve.node1, t + 0.01f));
+        var pos0 = InterpCurve(targetCurve.node0, targetCurve.node1, t);
+        var pos1 = InterpCurve(spline.Curves[targetIndex].node0, spline.Curves[targetIndex].node1, t + 1.0f / 60.0f);
 
         var scale = Vector3.Lerp(targetCurve.node0.Scale, targetCurve.node1.Scale, t);
         var roll = Mathf.Lerp(targetCurve.node0.Roll, targetCurve.node1.Roll, t);
         return new SplineSample() { Position = pos0, Forward = Vector3.Normalize(pos1 - pos0), Scale = scale, Roll = (int)roll };
+    }
+
+    static public Mesh DuplicateMesh(Mesh mesh)
+    {
+        var newMesh = new Mesh
+        {
+            vertices = mesh.vertices,
+            uv = mesh.uv,
+            uv2 = mesh.uv2,
+            uv3 = mesh.uv3,
+            uv4 = mesh.uv4,
+            normals = mesh.normals,
+            tangents = mesh.tangents,
+            colors = mesh.colors,
+            subMeshCount = mesh.subMeshCount,
+            boneWeights = mesh.boneWeights,
+            bindposes = mesh.bindposes,
+            name = mesh.name + "Duplicated"
+        };
+
+        for (int s = 0; s < mesh.subMeshCount; s++)
+            newMesh.SetTriangles(mesh.GetTriangles(s), s);
+
+        newMesh.RecalculateBounds();
+
+        return newMesh;
     }
 }
