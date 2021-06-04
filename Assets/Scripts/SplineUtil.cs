@@ -6,7 +6,7 @@ public class SplineUtil
 {
     static public Vector3 InterpCurvePositioin(SplineNode n0, SplineNode n1, float t)
     {
-        float omt = Mathf.Clamp01(1.0f - t);
+        float omt = 1.0f - t;
 
         float omt2 = omt * omt;
         float omt3 = omt2 * omt;
@@ -22,7 +22,7 @@ public class SplineUtil
 
     static public Vector3 InterpCurveTangent(SplineNode n0, SplineNode n1, float t)
     {
-        float omt = Mathf.Clamp01(1.0f - t);
+        float omt = 1.0f - t;
 
         float omt2 = omt * omt;
 
@@ -42,10 +42,9 @@ public class SplineUtil
 
         for (int i = 0; i < curveCount; i++)
         {
-            var curve = spline.Curves[i];
-            if (distance <= curve.DistanceGlobal)
+            targetIndex = i;
+            if (distance <= spline.Curves[i].DistanceGlobal)
             {
-                targetIndex = i;
                 break;
             }
         }
@@ -88,3 +87,10 @@ public class SplineUtil
         return newMesh;
     }
 }
+
+public enum AxisType
+{
+    X = 0,
+    Y = 1,
+    Z = 2,
+};

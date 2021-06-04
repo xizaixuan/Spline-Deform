@@ -29,13 +29,22 @@ public class SplineEditor : Editor
 
         foreach (var curve in Spline.Curves)
         {
-            Handles.DrawBezier(curve.node0.Position, curve.node1.Position,
-                curve.node0.OutPoint, curve.node1.InPoint, Color.blue, null, 4);
-            //Handles.DrawAAPolyLine(4, curve.Samples.ConvertAll(sample => sample.Position).ToArray());
-            //             foreach (var sample in curve.Samples)
-            //             {
-            //                 Handles.DrawLine(sample.Position, sample.Position + sample.Forward);
-            //             }
+            Handles.DrawBezier(curve.node0.Position, curve.node1.Position, curve.node0.OutPoint, curve.node1.InPoint, Color.white, null, 4);
+
+            var old = Handles.color;
+            foreach (var sample in curve.Samples)
+            {
+                Quaternion lookAt = Quaternion.LookRotation(sample.Forward);
+                Vector3 normal = lookAt * Vector3.up;
+                Vector3 normal2 = Quaternion.AngleAxis(90, Vector3.forward) * sample.Forward;
+                var up = Vector3.Cross(sample.Forward, Vector3.Cross(normal2, sample.Forward));
+
+                Handles.color = new Color(0, 1, 0);
+                Handles.DrawLine(sample.Position, sample.Position + up * 4);
+                Handles.color = new Color(0, 0, 1);
+                Handles.DrawLine(sample.Position, sample.Position + sample.Forward * 4);
+            }
+            Handles.color = old;
         }
 
         if (m_Selection != null)

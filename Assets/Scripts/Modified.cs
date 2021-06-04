@@ -20,9 +20,15 @@ public class Modified : MonoBehaviour
     {
         MeshFilter = GetComponent<MeshFilter>();
 
-        OriginalMesh = MeshFilter?.sharedMesh;
+        if (OriginalMesh == null)
+        {
+            OriginalMesh = MeshFilter?.sharedMesh;
+        }
 
-        DeformMesh = SplineUtil.DuplicateMesh(OriginalMesh);
+        if (DeformMesh == null)
+        {
+            DeformMesh = SplineUtil.DuplicateMesh(OriginalMesh);
+        }
 
         MeshFilter.mesh = DeformMesh;
     }
