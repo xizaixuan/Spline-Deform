@@ -18,7 +18,6 @@ public class Bend : MonoBehaviour
 
     private Dictionary<float, SplineSample> m_SampleCached = new Dictionary<float, SplineSample>();
 
-
     public AxisType AxisType = AxisType.Z;
     
     private float m_XAxisMin, m_XAxisMax;
@@ -37,7 +36,6 @@ public class Bend : MonoBehaviour
             m_DeformMesh = SplineUtil.DuplicateMesh(m_OriginalMesh);
             meshFilter.sharedMesh = m_DeformMesh;
         }
-
 
         m_XAxisMin = m_YAxisMin = m_ZAxisMin = float.MaxValue;
         m_XAxisMax = m_YAxisMax = m_ZAxisMax = float.MinValue;
@@ -80,70 +78,71 @@ public class Bend : MonoBehaviour
         }
     }
 
-    public void Update()
+    public void LateUpdate()
     {
-        Modify();
+        Deform();
     }
 
-    public void Modify()
+    public void Deform()
     {
-        m_SampleCached.Clear();
-
-        var bendVertices = new List<Vector3>(m_DeformMesh.vertexCount);
-        var axisQuaternion = Quaternion.identity;
-        var axisUp = Quaternion.AngleAxis(90, Vector3.forward);
-
-        var distanceRange = 0.0f;
-        var axisMin = 0.0f;
-        switch (AxisType)
+        if (m_Spline != null)
         {
-            case AxisType.X:
-                {
-                    axisQuaternion = Quaternion.AngleAxis(90, Vector3.up);
-                    distanceRange = m_XAxisMax - m_XAxisMin;
-                    axisMin = m_XAxisMin;
-                }
-                break;
-            case AxisType.Y:
-                {
-                    axisQuaternion = Quaternion.AngleAxis(-90, Vector3.right);
-                    distanceRange = m_YAxisMax - m_YAxisMin;
-                    axisMin = m_YAxisMin;
-                }
-                break;
-            case AxisType.Z:
-                {
-                    distanceRange = m_ZAxisMax - m_ZAxisMin;
-                    axisMin = m_ZAxisMin;
-                }
-                break;
-        }
+            m_SampleCached.Clear();
 
-        WalkDistance = Mathf.Clamp(WalkDistance, 0.0f, m_Spline.Distance);
+            var bendVertices = new List<Vector3>(m_DeformMesh.vertexCount);
+            var axisQuaternion = Quaternion.identity;
+            var axisUp = Quaternion.AngleAxis(90, Vector3.forward);
 
-        foreach (var vertex in m_OriginalMesh.vertices)
-        {
-            var point = axisQuaternion * vertex;
-            var distance = point.z - axisMin;
-
-            var distanceRate = distance / distanceRange;
-
-            if (!m_SampleCached.TryGetValue(distanceRate, out SplineSample sample))
+            var distanceRange = 0.0f;
+            var axisMin = 0.0f;
+            switch (AxisType)
             {
-                var distOnSpline = WalkDistance + distanceRate * distanceRange * IntervalLength;
-                sample = SplineUtil.Interp(m_Spline, distOnSpline / m_Spline.Distance);
-                m_SampleCached[distanceRate] = sample;
+                case AxisType.X:
+                    {
+                        axisQuaternion = Quaternion.AngleAxis(90, Vector3.up);
+                        distanceRange = m_XAxisMax - m_XAxisMin;
+                        axisMin = m_XAxisMin;
+                    }
+                    break;
+                case AxisType.Y:
+                    {
+                        axisQuaternion = Quaternion.AngleAxis(-90, Vector3.right);
+                        distanceRange = m_YAxisMax - m_YAxisMin;
+                        axisMin = m_YAxisMin;
+                    }
+                    break;
+                case AxisType.Z:
+                    {
+                        distanceRange = m_ZAxisMax - m_ZAxisMin;
+                        axisMin = m_ZAxisMin;
+                    }
+                    break;
             }
 
-            var up = Vector3.Cross(sample.Forward, Vector3.Cross(axisUp * sample.Forward, sample.Forward));
-            var rotation = Quaternion.LookRotation(sample.Forward, up);
+            foreach (var vertex in m_OriginalMesh.vertices)
+            {
+                var point = axisQuaternion * vertex;
+                var distance = point.z - axisMin;
 
-            var matrix = transform.worldToLocalMatrix * m_Spline.transform.localToWorldMatrix * Matrix4x4.TRS(sample.Position, rotation, Vector3.one);
+                var distanceRate = distance / distanceRange;
 
-            bendVertices.Add(matrix.MultiplyPoint3x4(new Vector3(point.x, point.y, 0.0f)));
+                if (!m_SampleCached.TryGetValue(distanceRate, out SplineSample sample))
+                {
+                    var distOnSpline = WalkDistance + distanceRate * distanceRange * IntervalLength;
+                    sample = SplineUtil.Interp(m_Spline, distOnSpline / m_Spline.Distance);
+                    m_SampleCached[distanceRate] = sample;
+                }
+
+                var up = Vector3.Cross(sample.Forward, Vector3.Cross(Quaternion.AngleAxis(sample.Roll, sample.Forward) * axisUp * sample.Forward, sample.Forward));
+                var rotation = Quaternion.LookRotation(sample.Forward, up);
+
+                var matrix = transform.worldToLocalMatrix * m_Spline.transform.localToWorldMatrix * Matrix4x4.TRS(sample.Position, rotation, sample.Scale);
+
+                bendVertices.Add(matrix.MultiplyPoint3x4(new Vector3(point.x, point.y, 0.0f)));
+            }
+
+            m_DeformMesh.vertices = bendVertices.ToArray();
+            m_DeformMesh.RecalculateBounds();
         }
-
-        m_DeformMesh.vertices = bendVertices.ToArray();
-        m_DeformMesh.RecalculateBounds();
     }
 }

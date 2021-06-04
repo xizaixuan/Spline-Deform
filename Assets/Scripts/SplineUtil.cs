@@ -49,7 +49,7 @@ public class SplineUtil
             }
         }
 
-        SplineCurve targetCurve = spline.Curves[targetIndex];
+        var targetCurve = spline.Curves[targetIndex];
 
         var t = 1 - (targetCurve.DistanceGlobal - distance) / targetCurve.DistanceLocal;
 
@@ -58,7 +58,7 @@ public class SplineUtil
 
         var scale = Vector3.Lerp(targetCurve.node0.Scale, targetCurve.node1.Scale, t);
         var roll = Mathf.Lerp(targetCurve.node0.Roll, targetCurve.node1.Roll, t);
-        return new SplineSample() { Position = pos, Forward = forward, Scale = scale, Roll = (int)roll };
+        return new SplineSample() { Position = pos, Forward = forward, Scale = scale, Roll = roll };
     }
 
     static public Mesh DuplicateMesh(Mesh mesh)
